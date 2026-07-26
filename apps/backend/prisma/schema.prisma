@@ -1,0 +1,238 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Company {
+  id                  String    @id @default(uuid())
+  name                String
+  email               String    @unique
+  phone               String
+  gstin               String?
+  address             String?
+  city                String?
+  state               String?
+  pincode             String?
+  subscriptionStatus  String    @default("TRIALING") // TRIALING, ACTIVE, PAST_DUE, EXPIRED, CANCELLED
+  planId              String?
+  subscriptionEndDate DateTime?
+  bankName            String?
+  bankAccountNo       String?
+  bankIfsc            String?
+  invoiceNotes        String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  users         User[]
+  products      Product[]
+  categories    Category[]
+  customers     Customer[]
+  suppliers     Supplier[]
+  invoices      Invoice[]
+  expenses      Expense[]
+  subscriptions Subscription[]
+  payments      Payment[]
+  auditLogs     AuditLog[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  companyId    String
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         String   @default("COMPANY_OWNER") // SUPER_ADMIN, COMPANY_OWNER, EMPLOYEE
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model SubscriptionPlan {
+  id                  String   @id @default(uuid())
+  name                String
+  tier                String   @default("STARTER") // STARTER, PROFESSIONAL, ENTERPRISE
+  priceMonthly        Float
+  priceYearly         Float
+  maxUsers            Int      @default(5)
+  maxProducts         Int      @default(1000)
+  maxInvoicesPerMonth Int      @default(500)
+  features            String   // JSON array string
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id            String   @id @default(uuid())
+  companyId     String
+  planId        String
+  status        String   @default("ACTIVE") // ACTIVE, PAST_DUE, EXPIRED, CANCELLED
+  billingCycle  String   @default("MONTHLY") // MONTHLY or YEARLY
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  razorpaySubId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan    SubscriptionPlan @relation(fields: [planId], references: [id])
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  companyId         String
+  amount            Float
+  currency          String   @default("INR")
+  status            String   @default("PENDING") // PENDING, SUCCESS, FAILED, REFUNDED
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  billingCycle      String   @default("MONTHLY")
+  planId            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  products Product[]
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  companyId     String
+  name          String
+  sku           String
+  barcode       String?
+  hsnCode       String?
+  categoryId    String?
+  buyPrice      Float
+  sellPrice     Float
+  gstRate       Float    @default(18.0) // 0, 5, 12, 18, 28
+  currentStock  Int      @default(0)
+  minStockAlert Int      @default(10)
+  unit          String   @default("Pcs")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  email     String?
+  phone     String
+  gstin     String?
+  address   String?
+  balance   Float    @default(0.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  email     String?
+  phone     String
+  gstin     String?
+  address   String?
+  balance   Float    @default(0.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  companyId     String
+  invoiceNumber String   @unique
+  customerId    String?
+  customerName  String
+  customerPhone String?
+  customerGstin String?
+  invoiceDate   DateTime @default(now())
+  dueDate       DateTime?
+  gstType       String   @default("INTRA_STATE") // INTRA_STATE or INTER_STATE
+  subtotal      Float
+  totalDiscount Float    @default(0.0)
+  totalTax      Float
+  cgstTotal     Float    @default(0.0)
+  sgstTotal     Float    @default(0.0)
+  igstTotal     Float    @default(0.0)
+  grandTotal    Float
+  status        String   @default("PAID") // DRAFT, PAID, PARTIAL, UNPAID, CANCELLED
+  paymentMethod String   @default("CASH") // CASH, UPI, CARD, NETBANKING
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company  Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items    InvoiceItem[]
+}
+
+model InvoiceItem {
+  id            String @id @default(uuid())
+  invoiceId     String
+  productId     String
+  productName   String
+  hsnCode       String?
+  quantity      Int
+  unitPrice     Float
+  discount      Float  @default(0.0)
+  gstRate       Float
+  taxableAmount Float
+  cgstAmount    Float  @default(0.0)
+  sgstAmount    Float  @default(0.0)
+  igstAmount    Float  @default(0.0)
+  totalAmount   Float
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  companyId   String
+  title       String
+  category    String   @default("Utilities") // Utilities, Rent, Payroll, Maintenance, Marketing
+  amount      Float
+  expenseDate DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}

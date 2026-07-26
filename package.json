@@ -1,0 +1,19 @@
+{
+  "name": "infinity-business-suite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Infinity Business Suite (IBS) - Cloud-Based SaaS ERP Platform by Infinity Technologies",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm --prefix apps/backend run start:dev",
+    "dev:web": "npm --prefix apps/web-admin run dev",
+    "build:backend": "npm --prefix apps/backend run build",
+    "build:web": "npm --prefix apps/web-admin run build",
+    "prisma:generate": "npm --prefix apps/backend run prisma:generate",
+    "prisma:migrate": "npm --prefix apps/backend run prisma:migrate"
+  },
+  "devDependencies": {}
+}

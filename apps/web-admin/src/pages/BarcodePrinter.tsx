@@ -24,9 +24,14 @@ export const BarcodePrinter: React.FC = () => {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="space-y-6 font-sans">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-soft flex items-center justify-between">
+      {/* Header bar (hidden on print) */}
+      <div className="no-print bg-white border border-slate-200 rounded-2xl p-6 shadow-soft flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Barcode Label Print Station</h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -35,7 +40,7 @@ export const BarcodePrinter: React.FC = () => {
         </div>
 
         <button
-          onClick={() => window.print()}
+          onClick={handlePrint}
           disabled={!selectedProduct}
           className="bg-primary hover:bg-primary-dark text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-hover flex items-center space-x-2 transition-all"
         >
@@ -45,8 +50,8 @@ export const BarcodePrinter: React.FC = () => {
       </div>
 
       <div className="grid md:grid-cols-12 gap-6">
-        {/* Left Product Selector */}
-        <div className="md:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-soft space-y-4">
+        {/* Left Product Selector (hidden on print) */}
+        <div className="no-print md:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-soft space-y-4">
           <h2 className="text-sm font-bold text-slate-900">Select Product to Print</h2>
           <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs">
             <Search className="w-4 h-4 text-slate-400" />
@@ -92,28 +97,28 @@ export const BarcodePrinter: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Label Sheet Preview */}
-        <div className="md:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-soft space-y-4">
-          <h2 className="text-sm font-bold text-slate-900">Thermal Label Preview (50mm × 25mm)</h2>
+        {/* Right Label Sheet Preview (Printable Area) */}
+        <div className="printable-area md:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-soft space-y-4">
+          <h2 className="no-print text-sm font-bold text-slate-900">Thermal Label Preview (50mm × 25mm)</h2>
           {selectedProduct ? (
-            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+            <div className="printable-grid grid grid-cols-2 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
               {Array.from({ length: copies }).map((_, idx) => (
                 <div
                   key={idx}
-                  className="bg-white border border-slate-800 p-3 rounded-lg text-center space-y-1 shadow-xs font-mono text-[10px]"
+                  className="bg-white border border-slate-800 p-3 rounded-lg text-center space-y-1 shadow-xs font-mono text-[10px] break-inside-avoid"
                 >
-                  <div className="font-bold text-xs truncate">{selectedProduct.name}</div>
+                  <div className="font-bold text-xs truncate text-slate-900">{selectedProduct.name}</div>
                   <div className="text-slate-500">SKU: {selectedProduct.sku}</div>
                   <div className="bg-slate-900 text-white font-bold py-1 px-2 rounded tracking-widest text-center text-xs my-1">
                     |||| || ||||| ||||
                   </div>
-                  <div className="text-slate-400 text-[9px]">{selectedProduct.barcode || '8901234567890'}</div>
+                  <div className="text-slate-500 text-[9px]">{selectedProduct.barcode || '8901234567890'}</div>
                   <div className="font-extrabold text-sm text-slate-900">MRP: ₹{selectedProduct.sellPrice}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-slate-400 text-xs">
+            <div className="no-print text-center py-12 text-slate-400 text-xs">
               Select a product from the list to preview barcode labels.
             </div>
           )}

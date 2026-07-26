@@ -61,14 +61,15 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       <div className="max-w-6xl w-full grid lg:grid-cols-12 gap-8 items-center">
         {/* Left Form Panel */}
         <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-8 shadow-soft">
-          <div className="mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-xl shadow-xs">
-                ∞
-              </div>
-              <span className="font-extrabold text-slate-900 text-lg">Infinity Business Suite</span>
+          <div className="mb-8">
+            {/* Text Only Logo matching Navbar header with margin gap */}
+            <div className="mb-6">
+              <span className="font-extrabold text-slate-900 text-xl tracking-tight font-sans">
+                Infinity <span className="text-primary font-normal">Business Suite</span>
+              </span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 mt-2 font-sans">
+
+            <h1 className="text-xl font-bold text-slate-900 font-sans">
               {isRegistering ? 'Register Company' : 'Sign In'}
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">

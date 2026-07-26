@@ -37,6 +37,8 @@ model Company {
   subscriptions Subscription[]
   payments      Payment[]
   auditLogs     AuditLog[]
+  warehouses    Warehouse[]
+  discounts     Discount[]
 }
 
 model User {
@@ -221,6 +223,31 @@ model Expense {
   amount      Float
   expenseDate DateTime @default(now())
   notes       String?
+  createdAt   DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  location  String
+  manager   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Discount {
+  id          String   @id @default(uuid())
+  companyId   String
+  code        String   @unique
+  type        String   @default("PERCENTAGE") // PERCENTAGE or FLAT
+  value       Float
+  minSubtotal Float    @default(0.0)
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)

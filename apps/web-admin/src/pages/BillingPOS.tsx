@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../services/api';
-import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, CheckCircle, Barcode, ShieldAlert } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, Printer, CheckCircle, Barcode, Tag } from 'lucide-react';
 
 export const BillingPOS: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -11,6 +11,10 @@ export const BillingPOS: React.FC = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [gstType, setGstType] = useState<'INTRA_STATE' | 'INTER_STATE'>('INTRA_STATE');
   const [paymentMethod, setPaymentMethod] = useState('CASH');
+
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
   const [loading, setLoading] = useState(false);
   const [generatedInvoice, setGeneratedInvoice] = useState<any | null>(null);
@@ -67,7 +71,21 @@ export const BillingPOS: React.FC = () => {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Tax calculations
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    try {
+      const subtotal = cart.reduce((acc, curr) => acc + curr.sellPrice * curr.quantity, 0);
+      const res = await apiFetch<any>('/discounts/validate', {
+        method: 'POST',
+        body: JSON.stringify({ code: couponCode, subtotal }),
+      });
+      setAppliedCoupon(res);
+    } catch (err: any) {
+      alert('Coupon error: ' + err.message);
+    }
+  };
+
+  // Tax & Discount calculations
   const calculateTotals = () => {
     let subtotal = 0;
     let totalTax = 0;
@@ -76,7 +94,7 @@ export const BillingPOS: React.FC = () => {
     let igst = 0;
 
     cart.forEach((item) => {
-      const lineSubtotal = item.sellPrice * item.quantity - (item.discount || 0);
+      const lineSubtotal = item.sellPrice * item.quantity;
       subtotal += lineSubtotal;
 
       const rate = item.gstRate || 18.0;
@@ -94,9 +112,10 @@ export const BillingPOS: React.FC = () => {
       }
     });
 
-    const grandTotal = Math.round(subtotal + totalTax);
+    const couponDiscount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+    const grandTotal = Math.max(0, Math.round(subtotal - couponDiscount + totalTax));
 
-    return { subtotal, totalTax, cgst, sgst, igst, grandTotal };
+    return { subtotal, couponDiscount, totalTax, cgst, sgst, igst, grandTotal };
   };
 
   const totals = calculateTotals();
@@ -116,13 +135,15 @@ export const BillingPOS: React.FC = () => {
           items: cart.map((item) => ({
             productId: item.id,
             quantity: item.quantity,
-            discount: item.discount || 0,
+            discount: totals.couponDiscount > 0 ? totals.couponDiscount / cart.length : 0,
           })),
         }),
       });
 
       setGeneratedInvoice(invoiceData);
       setCart([]);
+      setAppliedCoupon(null);
+      setCouponCode('');
       loadProducts();
     } catch (err: any) {
       alert('Checkout error: ' + err.message);
@@ -133,14 +154,14 @@ export const BillingPOS: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-12 gap-6 font-sans">
-      {/* Left Column: Product Catalog & Search */}
+      {/* Left Column: Product Catalog */}
       <div className="lg:col-span-7 space-y-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-soft flex items-center justify-between gap-4">
           <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full focus-within:ring-2 focus-within:ring-primary/20">
             <Search className="w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search products by Name, Barcode, or HSN Code..."
+              placeholder="Search products by Name, Barcode, or HSN..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent text-xs text-slate-800 outline-none w-full"
@@ -148,7 +169,7 @@ export const BillingPOS: React.FC = () => {
           </div>
           <div className="flex items-center space-x-1 px-3 py-2 bg-blue-50 text-primary rounded-xl text-xs font-bold shrink-0 border border-blue-100">
             <Barcode className="w-4 h-4" />
-            <span>Barcode Ready</span>
+            <span>Barcode Scanner</span>
           </div>
         </div>
 
@@ -195,18 +216,17 @@ export const BillingPOS: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Column: POS Cart & Checkout */}
+      {/* Right Column: POS Cart */}
       <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-soft flex flex-col justify-between h-[calc(100vh-8rem)]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
             <div className="flex items-center space-x-2">
               <ShoppingCart className="w-5 h-5 text-primary" />
-              <h2 className="text-base font-extrabold text-slate-900">Billing Counter & Cart</h2>
+              <h2 className="text-base font-extrabold text-slate-900">Billing Cart</h2>
             </div>
             <span className="text-xs font-bold text-slate-500">{cart.length} Items</span>
           </div>
 
-          {/* Customer & GST Configuration */}
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
               <label className="block text-[10px] font-bold text-slate-600 mb-1">Customer Name</label>
@@ -225,13 +245,13 @@ export const BillingPOS: React.FC = () => {
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs outline-none font-semibold text-slate-700"
               >
                 <option value="INTRA_STATE">Intra-State (CGST + SGST)</option>
-                <option value="INTER_STATE">Inter-State (IGST 18%)</option>
+                <option value="INTER_STATE">Inter-State (IGST)</option>
               </select>
             </div>
           </div>
 
           {/* Cart Item List */}
-          <div className="max-h-56 overflow-y-auto space-y-2 pr-1 mb-4">
+          <div className="max-h-44 overflow-y-auto space-y-2 pr-1 mb-3">
             {cart.length === 0 ? (
               <div className="text-center py-10 text-slate-400 text-xs">
                 Cart is empty. Click items from catalog to add.
@@ -268,14 +288,41 @@ export const BillingPOS: React.FC = () => {
               ))
             )}
           </div>
+
+          {/* Promo Coupon Redemption */}
+          <div className="flex items-center space-x-2 my-2">
+            <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 flex-1">
+              <Tag className="w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Coupon Code (e.g. WELCOME10)"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                className="bg-transparent text-xs text-slate-800 outline-none uppercase w-full font-mono"
+              />
+            </div>
+            <button
+              onClick={handleApplyCoupon}
+              className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800"
+            >
+              Apply
+            </button>
+          </div>
         </div>
 
-        {/* Invoice Summary & Checkout Action */}
-        <div className="pt-4 border-t border-slate-200 space-y-2 bg-slate-50/50 p-4 rounded-xl">
+        {/* Summary & Checkout */}
+        <div className="pt-3 border-t border-slate-200 space-y-1.5 bg-slate-50/50 p-4 rounded-xl">
           <div className="flex items-center justify-between text-xs text-slate-600">
             <span>Subtotal:</span>
             <span>₹{totals.subtotal.toLocaleString()}</span>
           </div>
+
+          {totals.couponDiscount > 0 && (
+            <div className="flex items-center justify-between text-xs text-emerald-600 font-bold">
+              <span>Promo Discount ({appliedCoupon?.code}):</span>
+              <span>- ₹{totals.couponDiscount.toFixed(2)}</span>
+            </div>
+          )}
 
           {gstType === 'INTRA_STATE' ? (
             <>
@@ -318,7 +365,7 @@ export const BillingPOS: React.FC = () => {
               className="flex-1 bg-primary hover:bg-primary-dark text-white font-bold text-xs py-2.5 rounded-xl shadow-hover transition-all flex items-center justify-center space-x-2"
             >
               <Printer className="w-4 h-4" />
-              <span>{loading ? 'Processing Invoice...' : 'Generate GST Invoice'}</span>
+              <span>{loading ? 'Processing...' : 'Generate GST Invoice'}</span>
             </button>
           </div>
         </div>
@@ -333,7 +380,6 @@ export const BillingPOS: React.FC = () => {
                 <p className="text-xs text-slate-500 font-mono">{generatedInvoice.invoiceNumber}</p>
               </div>
 
-              {/* Thermal Invoice Printable Preview */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl font-mono text-[11px] space-y-2 text-slate-800">
                 <div className="text-center font-bold text-xs uppercase">Infinity Digital Retailers</div>
                 <div className="text-center text-[10px] text-slate-500">GSTIN: 33AAAAA0000A1Z5</div>

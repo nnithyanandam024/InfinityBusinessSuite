@@ -6,6 +6,8 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { BillingPOS } from './pages/BillingPOS';
 import { Inventory } from './pages/Inventory';
+import { BarcodePrinter } from './pages/BarcodePrinter';
+import { WarehousesPage } from './pages/WarehousesPage';
 import { CustomerSupplier } from './pages/CustomerSupplier';
 import { Expenses } from './pages/Expenses';
 import { Reports } from './pages/Reports';
@@ -88,6 +90,10 @@ export const App: React.FC = () => {
           {activeTab === 'billing' && <BillingPOS />}
 
           {activeTab === 'inventory' && <Inventory />}
+
+          {activeTab === 'barcode' && <BarcodePrinter />}
+
+          {activeTab === 'warehouses' && <WarehousesPage />}
 
           {activeTab === 'customers' && <CustomerSupplier />}
 

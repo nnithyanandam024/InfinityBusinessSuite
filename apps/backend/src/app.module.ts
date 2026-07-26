@@ -12,6 +12,8 @@ import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
 import { AiModule } from './ai/ai.module';
 import { AuditModule } from './audit/audit.module';
+import { WarehouseModule } from './warehouse/warehouse.module';
+import { DiscountsModule } from './discounts/discounts.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { AuditModule } from './audit/audit.module';
     UsersModule,
     AiModule,
     AuditModule,
+    WarehouseModule,
+    DiscountsModule,
   ],
 })
 export class AppModule {}

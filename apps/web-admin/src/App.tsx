@@ -15,6 +15,7 @@ import { UsersPage } from './pages/UsersPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { SuperAdminPortal } from './pages/SuperAdminPortal';
 import { SubscriptionPlansModal } from './components/SubscriptionPlansModal';
 
 export const App: React.FC = () => {
@@ -111,6 +112,8 @@ export const App: React.FC = () => {
               onOpenPlansModal={() => setIsSubscriptionModalOpen(true)}
             />
           )}
+
+          {activeTab === 'superadmin' && <SuperAdminPortal />}
 
           {activeTab === 'settings' && <SettingsPage />}
         </main>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Package, Users, BarChart3, CreditCard, DollarSign, Settings, UserCheck, ShieldCheck, Barcode, Building2 } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, Users, BarChart3, CreditCard, DollarSign, Settings, UserCheck, ShieldCheck, Barcode, Building2, Crown } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -19,6 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'users', label: 'Team Members', icon: UserCheck },
     { id: 'audit', label: 'Audit Logs', icon: ShieldCheck },
     { id: 'subscription', label: 'Subscription', icon: CreditCard },
+    { id: 'superadmin', label: 'SaaS Super Admin', icon: Crown, badge: 'Multi-SaaS' },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -58,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
 
       <div className="pt-4 border-t border-slate-100 px-3 text-[11px] text-slate-400 flex items-center justify-between">
         <span>Infinity Technologies</span>
-        <span className="font-semibold text-slate-500">v2.5.0</span>
+        <span className="font-semibold text-slate-500">v3.0.0</span>
       </div>
     </aside>
   );

@@ -35,11 +35,22 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  const setRoleDefaultTab = (role: string) => {
+    if (role === 'SUPER_ADMIN') {
+      setActiveTab('superadmin');
+    } else if (role === 'EMPLOYEE') {
+      setActiveTab('billing');
+    } else {
+      setActiveTab('dashboard');
+    }
+  };
+
   const fetchUser = async () => {
     try {
       const res = await apiFetch<any>('/auth/me');
       setUser(res);
       setCompany(res.company);
+      setRoleDefaultTab(res.role);
     } catch (err) {
       console.error('Session expired:', err);
     } finally {
@@ -64,6 +75,7 @@ export const App: React.FC = () => {
         onLoginSuccess={(u, c) => {
           setUser(u);
           setCompany(c);
+          setRoleDefaultTab(u.role);
         }}
       />
     );
@@ -78,10 +90,14 @@ export const App: React.FC = () => {
       />
 
       <div className="flex-1 flex">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          userRole={user.role}
+        />
 
         <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
-          {activeTab === 'dashboard' && (
+          {activeTab === 'dashboard' && user.role === 'COMPANY_OWNER' && (
             <Dashboard
               onNavigateToPOS={() => setActiveTab('billing')}
               onNavigateToInventory={() => setActiveTab('inventory')}
@@ -94,28 +110,28 @@ export const App: React.FC = () => {
 
           {activeTab === 'barcode' && <BarcodePrinter />}
 
-          {activeTab === 'warehouses' && <WarehousesPage />}
+          {activeTab === 'warehouses' && user.role === 'COMPANY_OWNER' && <WarehousesPage />}
 
-          {activeTab === 'customers' && <CustomerSupplier />}
+          {activeTab === 'customers' && user.role === 'COMPANY_OWNER' && <CustomerSupplier />}
 
-          {activeTab === 'expenses' && <Expenses />}
+          {activeTab === 'expenses' && user.role === 'COMPANY_OWNER' && <Expenses />}
 
-          {activeTab === 'reports' && <Reports />}
+          {activeTab === 'reports' && user.role === 'COMPANY_OWNER' && <Reports />}
 
-          {activeTab === 'users' && <UsersPage />}
+          {activeTab === 'users' && user.role === 'COMPANY_OWNER' && <UsersPage />}
 
-          {activeTab === 'audit' && <AuditLogsPage />}
+          {activeTab === 'audit' && (user.role === 'COMPANY_OWNER' || user.role === 'SUPER_ADMIN') && <AuditLogsPage />}
 
-          {activeTab === 'subscription' && (
+          {activeTab === 'subscription' && user.role === 'COMPANY_OWNER' && (
             <SubscriptionPage
               company={company}
               onOpenPlansModal={() => setIsSubscriptionModalOpen(true)}
             />
           )}
 
-          {activeTab === 'superadmin' && <SuperAdminPortal />}
+          {activeTab === 'superadmin' && user.role === 'SUPER_ADMIN' && <SuperAdminPortal />}
 
-          {activeTab === 'settings' && <SettingsPage />}
+          {activeTab === 'settings' && user.role === 'COMPANY_OWNER' && <SettingsPage />}
         </main>
       </div>
 

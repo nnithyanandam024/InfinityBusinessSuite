@@ -43,7 +43,7 @@ async function main() {
     },
   });
 
-  // 2. Demo Company & Owner
+  // 2. Demo Company
   const demoCompany = await prisma.company.upsert({
     where: { email: 'demo@infinitytech.com' },
     update: {},
@@ -64,20 +64,50 @@ async function main() {
 
   const passwordHash = hashPassword('Infinity@2026');
 
+  // 3. User Accounts for 3 Distinct Roles
+  // Role 1: Super Admin (Infinity Technologies Platform Super Admin)
+  await prisma.user.upsert({
+    where: { email: 'superadmin@infinitytech.com' },
+    update: {},
+    create: {
+      companyId: demoCompany.id,
+      email: 'superadmin@infinitytech.com',
+      fullName: 'Infinity Super Admin',
+      passwordHash,
+      role: 'SUPER_ADMIN',
+      phone: '+91 90000 00001',
+    },
+  });
+
+  // Role 2: Company Owner / Admin
   await prisma.user.upsert({
     where: { email: 'admin@infinitytech.com' },
     update: {},
     create: {
       companyId: demoCompany.id,
       email: 'admin@infinitytech.com',
-      fullName: 'Nithyanandam N',
+      fullName: 'Nithyanandam N (Owner)',
       passwordHash,
       role: 'COMPANY_OWNER',
       phone: '+91 98765 43210',
     },
   });
 
-  // 3. Demo Categories & Products
+  // Role 3: Employee / Cashier
+  await prisma.user.upsert({
+    where: { email: 'cashier@infinitytech.com' },
+    update: {},
+    create: {
+      companyId: demoCompany.id,
+      email: 'cashier@infinitytech.com',
+      fullName: 'Rahul Sharma (Cashier)',
+      passwordHash,
+      role: 'EMPLOYEE',
+      phone: '+91 98765 11111',
+    },
+  });
+
+  // 4. Demo Categories & Products
   const catElectronics = await prisma.category.create({
     data: { companyId: demoCompany.id, name: 'Electronics & IT', description: 'Smart Devices & Hardware' },
   });
@@ -133,7 +163,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Seeding complete!');
+  console.log('✅ Seeding complete with 3 distinct user roles!');
 }
 
 main()

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/auth_service.dart';
 import '../navigation/main_navigation.dart';
 
 class MobileAuthScreen extends StatefulWidget {
@@ -14,21 +15,33 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
   final _passwordController = TextEditingController(text: 'Infinity@2026');
   bool _isLoading = false;
 
-  void _handleLogin(String role) {
+  Future<void> _handleLogin(String role) async {
     setState(() => _isLoading = true);
-    Future.delayed(const Duration(milliseconds: 500), () {
+    try {
+      final email = role == 'EMPLOYEE' ? 'cashier@infinitytech.com' : _emailController.text;
+      final res = await AuthService.login(email, _passwordController.text);
+      
       if (!mounted) return;
       setState(() => _isLoading = false);
+
+      final userRole = res['user']?['role'] ?? role;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => MobileMainNavigation(
-            userEmail: _emailController.text,
-            userRole: role,
+            userEmail: email,
+            userRole: userRole,
           ),
         ),
       );
-    });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('⚠️ Authentication Error: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
   }
 
   void _handleBiometricAuth() {
@@ -61,7 +74,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
+                        color: AppColors.primary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -72,7 +85,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.all_inclusive, color: Colors.white, size: 36),
@@ -114,7 +127,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                     border: Border.all(color: AppColors.borderLight),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),

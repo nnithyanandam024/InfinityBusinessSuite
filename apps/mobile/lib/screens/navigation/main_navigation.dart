@@ -21,8 +21,6 @@ class MobileMainNavigation extends StatefulWidget {
 
 class _MobileMainNavigationState extends State<MobileMainNavigation> {
   int _currentIndex = 0;
-  bool _isOfflineMode = false;
-  int _offlineQueueCount = 0;
 
   @override
   void initState() {
@@ -32,89 +30,17 @@ class _MobileMainNavigationState extends State<MobileMainNavigation> {
     }
   }
 
-  void _toggleOfflineMode() {
-    setState(() {
-      _isOfflineMode = !_isOfflineMode;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isOfflineMode
-            ? '📡 Offline Mode Activated! Invoices will cache locally.'
-            : '🌐 Online Mode Restored! Auto-sync ready.'),
-      ),
-    );
-  }
-
-  void _syncOfflineInvoices() {
-    if (_offlineQueueCount == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✨ No offline invoices pending sync.')),
-      );
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('🔄 Syncing $_offlineQueueCount offline invoices to cloud NestJS API...')),
-    );
-    setState(() => _offlineQueueCount = 0);
-  }
-
   @override
   Widget build(BuildContext context) {
     final screens = [
       MobileDashboardTab(userRole: widget.userRole),
-      MobilePOSTab(
-        isOfflineMode: _isOfflineMode,
-        onInvoiceCreatedOffline: () => setState(() => _offlineQueueCount += 1),
-      ),
+      const MobilePOSTab(),
       const MobileInventoryTab(),
       const MobileLedgersTab(),
       MobileProfileTab(userEmail: widget.userEmail, userRole: widget.userRole),
     ];
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(30),
-        child: GestureDetector(
-          onTap: _toggleOfflineMode,
-          child: Container(
-            color: _isOfflineMode ? Colors.amber.shade800 : Colors.green.shade700,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            child: SafeArea(
-              bottom: false,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(_isOfflineMode ? Icons.wifi_off : Icons.wifi, color: Colors.white, size: 14),
-                      const SizedBox(width: 6),
-                      Text(
-                        _isOfflineMode ? 'OFFLINE MODE (Local Cache)' : 'ONLINE CLOUD SYNC ACTIVE',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  if (_offlineQueueCount > 0)
-                    GestureDetector(
-                      onTap: _syncOfflineInvoices,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          'Sync ($_offlineQueueCount)',
-                          style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
       body: IndexedStack(
         index: _currentIndex,
         children: screens,

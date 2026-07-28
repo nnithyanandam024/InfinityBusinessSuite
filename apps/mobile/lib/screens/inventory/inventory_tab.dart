@@ -1,21 +1,72 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/models/product_model.dart';
+import '../../core/services/product_service.dart';
 
-class MobileInventoryTab extends StatelessWidget {
+class MobileInventoryTab extends StatefulWidget {
   const MobileInventoryTab({super.key});
+
+  @override
+  State<MobileInventoryTab> createState() => _MobileInventoryTabState();
+}
+
+class _MobileInventoryTabState extends State<MobileInventoryTab> {
+  List<ProductModel> _products = [];
+  List<ProductModel> _filteredProducts = [];
+  bool _isLoading = true;
+  final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() => _isLoading = true);
+    final items = await ProductService.fetchProducts();
+    if (!mounted) return;
+    setState(() {
+      _products = items;
+      _filteredProducts = items;
+      _isLoading = false;
+    });
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredProducts = _products;
+      } else {
+        final q = query.toLowerCase();
+        _filteredProducts = _products.where((p) {
+          return p.name.toLowerCase().contains(q) || p.sku.toLowerCase().contains(q);
+        }).toList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inventory Catalog', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('Inventory Catalog API', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: Colors.white,
         elevation: 0.5,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.primary),
+            onPressed: _loadProducts,
+            tooltip: 'Sync API Catalog',
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
           TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
             decoration: InputDecoration(
               hintText: 'Search SKU or Barcode...',
               prefixIcon: const Icon(Icons.search, size: 18),
@@ -28,9 +79,10 @@ class MobileInventoryTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildInventoryCard('Wireless Ergonomic Mouse', 'SKU-LOG-001', 45, 'Pcs'),
-          _buildInventoryCard('USB-C Fast Charger 65W', 'SKU-CHG-065', 8, 'Pcs'),
-          _buildInventoryCard('A4 Premium Copy Paper Box', 'SKU-PAP-A4', 120, 'Box'),
+          if (_isLoading)
+            const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
+          else
+            ..._filteredProducts.map((p) => _buildInventoryCard(p.name, p.sku, p.currentStock, p.unit)),
         ],
       ),
     );

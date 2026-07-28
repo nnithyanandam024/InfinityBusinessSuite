@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import '../../widgets/business_health_widget.dart';
 
 class MobileDashboardTab extends StatefulWidget {
   final String userRole;
@@ -15,7 +16,7 @@ class _MobileDashboardTabState extends State<MobileDashboardTab> {
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✨ Live Dashboard Metrics Refreshed from API')),
+      const SnackBar(content: Text('✨ Live Dashboard Metrics & Business Health Score Refreshed')),
     );
   }
 
@@ -66,6 +67,10 @@ class _MobileDashboardTabState extends State<MobileDashboardTab> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Signature Feature: Business Health Score (0 - 100) Card
+            const BusinessHealthWidget(),
             const SizedBox(height: 16),
 
             GridView.count(

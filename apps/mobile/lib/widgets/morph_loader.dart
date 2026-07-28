@@ -19,7 +19,6 @@ class _MorphLoaderState extends State<MorphLoader> with SingleTickerProviderStat
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  bool _isShortText = false;
   int _loadingStep = 0;
 
   final List<String> _loadingMessages = [
@@ -48,7 +47,6 @@ class _MorphLoaderState extends State<MorphLoader> with SingleTickerProviderStat
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          _isShortText = !_isShortText;
           _loadingStep = (_loadingStep + 1) % _loadingMessages.length;
         });
         _controller.reverse();
@@ -102,68 +100,9 @@ class _MorphLoaderState extends State<MorphLoader> with SingleTickerProviderStat
             );
           },
         ),
-        const SizedBox(height: 28),
-
-        // Morphing Brand Text: "Infinity Business Suite" <-> "IBS"
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: animation, child: child),
-            );
-          },
-          child: _isShortText
-              ? Container(
-                  key: const ValueKey('IBS_SHORT'),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'IBS',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: 3,
-                    ),
-                  ),
-                )
-              : RichText(
-                  key: const ValueKey('IBS_FULL'),
-                  textAlign: TextAlign.center,
-                  text: const TextSpan(
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                    children: [
-                      TextSpan(text: 'Infinity '),
-                      TextSpan(
-                        text: 'Business Suite',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-        ),
 
         if (widget.showSubtext) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: 36),
           Text(
             _loadingMessages[_loadingStep],
             textAlign: TextAlign.center,
@@ -173,7 +112,7 @@ class _MorphLoaderState extends State<MorphLoader> with SingleTickerProviderStat
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           const SizedBox(
             width: 140,
             child: LinearProgressIndicator(

@@ -14,7 +14,10 @@ class _MobileInventoryTabState extends State<MobileInventoryTab> {
   List<ProductModel> _products = [];
   List<ProductModel> _filteredProducts = [];
   bool _isLoading = true;
+  String _selectedCategory = 'All';
   final _searchController = TextEditingController();
+
+  final List<String> _categories = ['All', 'Electronics', 'Accessories', 'Paper & Office'];
 
   @override
   void initState() {
@@ -34,16 +37,75 @@ class _MobileInventoryTabState extends State<MobileInventoryTab> {
   }
 
   void _onSearchChanged(String query) {
+    _filterCatalog(query, _selectedCategory);
+  }
+
+  void _filterCatalog(String query, String category) {
     setState(() {
-      if (query.isEmpty) {
-        _filteredProducts = _products;
-      } else {
-        final q = query.toLowerCase();
-        _filteredProducts = _products.where((p) {
-          return p.name.toLowerCase().contains(q) || p.sku.toLowerCase().contains(q);
-        }).toList();
+      _selectedCategory = category;
+      List<ProductModel> temp = _products;
+
+      if (category != 'All') {
+        if (category == 'Electronics') {
+          temp = temp.where((p) => p.name.contains('Charger') || p.name.contains('Mouse')).toList();
+        } else if (category == 'Paper & Office') {
+          temp = temp.where((p) => p.name.contains('Paper') || p.name.contains('Box')).toList();
+        }
       }
+
+      if (query.isNotEmpty) {
+        final q = query.toLowerCase();
+        temp = temp.where((p) => p.name.toLowerCase().contains(q) || p.sku.toLowerCase().contains(q)).toList();
+      }
+
+      _filteredProducts = temp;
     });
+  }
+
+  void _openStockAdjustmentModal(ProductModel product) {
+    final stockController = TextEditingController(text: '${product.currentStock}');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Adjust Stock: ${product.sku}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(product.name, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: stockController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'New Stock Quantity (${product.unit})',
+                filled: true,
+                fillColor: AppColors.bgLight,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              final newStock = int.tryParse(stockController.text) ?? product.currentStock;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('✅ Stock updated for ${product.sku}: $newStock ${product.unit}')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            child: const Text('Save Stock'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -78,17 +140,41 @@ class _MobileInventoryTabState extends State<MobileInventoryTab> {
               ),
             ),
           ),
+          const SizedBox(height: 10),
+
+          // Category Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _categories.map((cat) {
+                final isSelected = _selectedCategory == cat;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    label: Text(cat, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textDark)),
+                    selected: isSelected,
+                    selectedColor: AppColors.primary,
+                    backgroundColor: Colors.white,
+                    onSelected: (val) {
+                      if (val) _filterCatalog(_searchController.text, cat);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
           const SizedBox(height: 12),
+
           if (_isLoading)
             const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
           else
-            ..._filteredProducts.map((p) => _buildInventoryCard(p.name, p.sku, p.currentStock, p.unit)),
+            ..._filteredProducts.map((p) => _buildInventoryCard(p)),
         ],
       ),
     );
   }
 
-  Widget _buildInventoryCard(String name, String sku, int stock, String unit) {
+  Widget _buildInventoryCard(ProductModel p) {
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -98,22 +184,34 @@ class _MobileInventoryTabState extends State<MobileInventoryTab> {
       ),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-        subtitle: Text('SKU: $sku', style: const TextStyle(fontSize: 11)),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: stock < 10 ? Colors.red.shade50 : Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            '$stock $unit',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-              color: stock < 10 ? Colors.redAccent : AppColors.primary,
+        title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        subtitle: Text('SKU: ${p.sku} • ₹${p.sellPrice.toStringAsFixed(0)}', style: const TextStyle(fontSize: 11)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () => _openStockAdjustmentModal(p),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: p.currentStock < 10 ? Colors.red.shade50 : Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${p.currentStock} ${p.unit}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    color: p.currentStock < 10 ? Colors.redAccent : AppColors.primary,
+                  ),
+                ),
+              ),
             ),
-          ),
+            IconButton(
+              icon: const Icon(Icons.edit_note, size: 20, color: AppColors.textMuted),
+              onPressed: () => _openStockAdjustmentModal(p),
+            ),
+          ],
         ),
       ),
     );

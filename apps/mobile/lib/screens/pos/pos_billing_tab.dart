@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/models/product_model.dart';
 import '../../core/services/product_service.dart';
 import '../../core/services/billing_service.dart';
+import '../../core/services/whatsapp_service.dart';
 
 class MobilePOSTab extends StatefulWidget {
   const MobilePOSTab({super.key});
@@ -145,23 +146,52 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
             const SizedBox(height: 8),
             Text('Total Paid: ₹${_grandTotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _cart.clear();
-                  _appliedCoupon = null;
-                  _discountAmount = 0.0;
-                });
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.bluetooth_connected),
-              label: const Text('Print via Bluetooth Thermal Printer'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(44),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _cart.clear();
+                        _appliedCoupon = null;
+                        _discountAmount = 0.0;
+                      });
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.bluetooth_connected, size: 16),
+                    label: const Text('Print Receipt', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      final msg = WhatsAppService.buildInvoiceTemplate(
+                        customerName: 'Customer',
+                        invoiceNumber: invNumber,
+                        grandTotal: _grandTotal,
+                        itemLength: _cart.length,
+                      );
+                      Navigator.pop(context);
+                      WhatsAppService.launchWhatsApp(context, phone: '+919876511111', message: msg);
+                    },
+                    icon: const Icon(Icons.chat, size: 16),
+                    label: const Text('WhatsApp', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF25D366),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

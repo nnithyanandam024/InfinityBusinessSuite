@@ -4,6 +4,7 @@ import '../pos/pos_billing_tab.dart';
 import '../inventory/inventory_tab.dart';
 import '../ledgers/ledgers_tab.dart';
 import '../profile/profile_tab.dart';
+import '../whatsapp/whatsapp_hub_screen.dart';
 
 class MobileMainNavigation extends StatefulWidget {
   final String userEmail;
@@ -41,6 +42,18 @@ class _MobileMainNavigationState extends State<MobileMainNavigation> {
     ];
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const WhatsAppHubScreen()),
+          );
+        },
+        backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+        foregroundColor: Colors.white,
+        tooltip: 'WhatsApp Hub',
+        child: const Icon(Icons.chat),
+      ),
       body: IndexedStack(
         index: _currentIndex,
         children: screens,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/constants/app_colors.dart';
-import 'screens/auth/login_screen.dart';
+import 'screens/splash/splash_screen.dart';
 
 void main() {
   runApp(const InfinityBusinessSuiteApp());
@@ -24,7 +24,7 @@ class InfinityBusinessSuiteApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: AppColors.bgLight,
       ),
-      home: const MobileAuthScreen(),
+      home: const SplashScreen(),
     );
   }
 }

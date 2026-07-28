@@ -1,9 +1,13 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class BillingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventsGateway: EventsGateway,
+  ) {}
 
   async getInvoices(companyId: string) {
     return this.prisma.invoice.findMany({
@@ -114,9 +118,17 @@ export class BillingService {
       });
 
       // Deduct stock from Inventory
+      const newStock = product.currentStock - qty;
       await this.prisma.product.update({
         where: { id: product.id },
-        data: { currentStock: product.currentStock - qty },
+        data: { currentStock: newStock },
+      });
+
+      // Emit Real-Time Stock Update Event
+      this.eventsGateway.emitToCompany(companyId, 'stock.updated', {
+        productId: product.id,
+        productName: product.name,
+        newStock,
       });
     }
 
@@ -146,6 +158,9 @@ export class BillingService {
       },
       include: { items: true },
     });
+
+    // Emit Real-Time Invoice Created Event
+    this.eventsGateway.emitToCompany(companyId, 'invoice.created', invoice);
 
     return invoice;
   }

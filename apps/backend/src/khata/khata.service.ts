@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class KhataService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventsGateway: EventsGateway,
+  ) {}
 
   async createEntry(companyId: String, dto: { customerId: string; type: 'DEBIT' | 'CREDIT'; amount: number; referenceType?: string; referenceId?: string; note?: string }) {
     const customer = await this.prisma.customer.findFirst({
@@ -36,6 +40,14 @@ export class KhataService {
         data: { balance: newBalance },
       }),
     ]);
+
+    // Emit Real-Time WebSocket event
+    this.eventsGateway.emitToCompany(String(companyId), 'khata.entry.created', {
+      customerId: dto.customerId,
+      customerName: customer.name,
+      entry,
+      newBalance,
+    });
 
     return entry;
   }

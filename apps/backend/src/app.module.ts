@@ -16,6 +16,7 @@ import { WarehouseModule } from './warehouse/warehouse.module';
 import { DiscountsModule } from './discounts/discounts.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { KhataModule } from './khata/khata.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { KhataModule } from './khata/khata.module';
     DiscountsModule,
     SuperAdminModule,
     KhataModule,
+    EventsModule,
   ],
 })
 export class AppModule {}

@@ -15,6 +15,7 @@ import { AuditModule } from './audit/audit.module';
 import { WarehouseModule } from './warehouse/warehouse.module';
 import { DiscountsModule } from './discounts/discounts.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
+import { KhataModule } from './khata/khata.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
     WarehouseModule,
     DiscountsModule,
     SuperAdminModule,
+    KhataModule,
   ],
 })
 export class AppModule {}

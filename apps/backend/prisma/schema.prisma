@@ -138,19 +138,35 @@ model Product {
 }
 
 model Customer {
-  id        String   @id @default(uuid())
-  companyId String
-  name      String
-  email     String?
-  phone     String
-  gstin     String?
-  address   String?
-  balance   Float    @default(0.0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String       @id @default(uuid())
+  companyId    String
+  name         String
+  email        String?
+  phone        String
+  gstin        String?
+  address      String?
+  balance      Float        @default(0.0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invoices Invoice[]
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+  khataEntries KhataEntry[]
+}
+
+model KhataEntry {
+  id            String   @id @default(uuid())
+  companyId     String
+  customerId    String
+  type          String   @default("DEBIT") // DEBIT (+ invoice/dues), CREDIT (- payment received)
+  amount        Float
+  balanceAfter  Float
+  referenceType String   @default("INVOICE") // INVOICE, PAYMENT, OPENING_BALANCE
+  referenceId   String?
+  note          String?
+  createdAt     DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model Supplier {

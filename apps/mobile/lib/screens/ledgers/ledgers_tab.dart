@@ -25,6 +25,56 @@ class _MobileLedgersTabState extends State<MobileLedgersTab> {
     );
   }
 
+  void _openReceivePaymentModal(Map<String, dynamic> account) {
+    final amountController = TextEditingController(text: '${(account['balance'] as double).abs()}');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Receive Payment: ${account['name']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Current Receivable Dues: ₹${(account['balance'] as double).abs().toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Payment Received Amount (₹)',
+                filled: true,
+                fillColor: AppColors.bgLight,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final paid = double.tryParse(amountController.text) ?? 0.0;
+              setState(() {
+                final oldB = account['balance'] as double;
+                account['balance'] = oldB - paid;
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('✅ Recorded ₹$paid Payment Received from ${account['name']}')),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+            child: const Text('Record Payment'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openAddCustomerModal() {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
@@ -198,19 +248,37 @@ class _MobileLedgersTabState extends State<MobileLedgersTab> {
                             color: isReceivable ? Colors.green.shade700 : Colors.redAccent,
                           ),
                         ),
-                        if (isReceivable)
-                          ElevatedButton.icon(
-                            onPressed: () => _sendWhatsAppReminder(context, item['name'] as String, item['phone'] as String, balance),
-                            icon: const Icon(Icons.chat, size: 14),
-                            label: const Text('WhatsApp Reminder', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF25D366),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                          ),
+                        Row(
+                          children: [
+                            if (isReceivable) ...[
+                              OutlinedButton.icon(
+                                onPressed: () => _openReceivePaymentModal(item),
+                                icon: const Icon(Icons.payments_outlined, size: 14),
+                                label: const Text('Pay', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.green.shade700,
+                                  side: BorderSide(color: Colors.green.shade300),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              ElevatedButton.icon(
+                                onPressed: () => _sendWhatsAppReminder(context, item['name'] as String, item['phone'] as String, balance),
+                                icon: const Icon(Icons.chat, size: 14),
+                                label: const Text('Reminder', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF25D366),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
                     ),
                   ],

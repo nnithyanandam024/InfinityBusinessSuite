@@ -62,6 +62,99 @@ class _MobileInventoryTabState extends State<MobileInventoryTab> {
     });
   }
 
+  void _openAddProductModal() {
+    final nameController = TextEditingController();
+    final skuController = TextEditingController();
+    final priceController = TextEditingController();
+    final stockController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Add New Product SKU', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Product Name',
+                  filled: true,
+                  fillColor: AppColors.bgLight,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: skuController,
+                decoration: InputDecoration(
+                  labelText: 'SKU Code (e.g. SKU-100)',
+                  filled: true,
+                  fillColor: AppColors.bgLight,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Selling Price (₹)',
+                  filled: true,
+                  fillColor: AppColors.bgLight,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: stockController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Initial Stock Quantity',
+                  filled: true,
+                  fillColor: AppColors.bgLight,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.isNotEmpty && skuController.text.isNotEmpty) {
+                final newProduct = ProductModel(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: nameController.text,
+                  sku: skuController.text.toUpperCase(),
+                  buyPrice: (double.tryParse(priceController.text) ?? 100) * 0.7,
+                  sellPrice: double.tryParse(priceController.text) ?? 100,
+                  currentStock: int.tryParse(stockController.text) ?? 10,
+                );
+                setState(() {
+                  _products.insert(0, newProduct);
+                  _filteredProducts.insert(0, newProduct);
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('✅ Product SKU ${newProduct.sku} Created!')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            child: const Text('Save Product'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openStockAdjustmentModal(ProductModel product) {
     final stockController = TextEditingController(text: '${product.currentStock}');
     showDialog(
@@ -116,6 +209,11 @@ class _MobileInventoryTabState extends State<MobileInventoryTab> {
         backgroundColor: Colors.white,
         elevation: 0.5,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add_box_outlined, color: AppColors.primary),
+            onPressed: _openAddProductModal,
+            tooltip: 'Add Product SKU',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: _loadProducts,

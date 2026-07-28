@@ -11,6 +11,11 @@ class WhatsAppService {
     return cleaned;
   }
 
+  static String buildUpiLink({required String upiId, required double amount, String note = 'Invoice Payment'}) {
+    final cleanNote = Uri.encodeComponent(note);
+    return 'upi://pay?pa=$upiId&am=${amount.toStringAsFixed(2)}&cu=INR&tn=$cleanNote';
+  }
+
   static String buildInvoiceTemplate({
     required String customerName,
     required String invoiceNumber,
@@ -36,8 +41,10 @@ Thank you for your business! Have a great day!
   static String buildPaymentReminderTemplate({
     required String customerName,
     required double balanceDue,
+    String storeUpiId = 'infinity@okicici',
     String storeName = 'Infinity Business Suite',
   }) {
+    final upiUrl = buildUpiLink(upiId: storeUpiId, amount: balanceDue);
     return '''
 💳 *Payment Due Balance Reminder - $storeName*
 
@@ -46,9 +53,10 @@ This is a gentle reminder regarding your outstanding account balance:
 
 💰 *Current Dues Balance*: ₹${balanceDue.toStringAsFixed(2)}
 
-Please settle this amount via UPI or bank transfer at your earliest convenience. Contact us if you have any questions.
+👉 *Pay Instantly via UPI (GPay / PhonePe / Paytm)*:
+$upiUrl
 
-Thank you!
+Please contact us once payment is completed. Thank you!
 ''';
   }
 
@@ -68,6 +76,44 @@ Enjoy *10% OFF* on your next purchase at $storeName!
 ✨ *Offer Details*: $offerTitle
 
 Visit our store or order online today! T&C Apply.
+''';
+  }
+
+  static String buildShipmentTrackingTemplate({
+    required String customerName,
+    required String trackingId,
+    required String courierName,
+    String storeName = 'Infinity Business Suite',
+  }) {
+    return '''
+📦 *Order Dispatched & Tracking - $storeName*
+
+Hello *$customerName*,
+Great news! Your order has been dispatched via *$courierName*.
+
+🚚 *Tracking ID*: *$trackingId*
+📍 *Estimated Delivery*: 2-3 Business Days
+
+Thank you for choosing $storeName!
+''';
+  }
+
+  static String buildSupplierRestockTemplate({
+    required String supplierName,
+    required String sku,
+    required int requestedQty,
+    String storeName = 'Infinity Business Suite',
+  }) {
+    return '''
+🏭 *Purchase Restock Request - $storeName*
+
+Dear *$supplierName*,
+Please send a purchase quotation & availability confirmation for the following stock replenishment:
+
+📦 *Item SKU*: $sku
+📊 *Requested Quantity*: $requestedQty Pcs
+
+Thank you!
 ''';
   }
 

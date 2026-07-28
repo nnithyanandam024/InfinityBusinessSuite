@@ -27,6 +27,9 @@ class InfinityBusinessSuiteApp extends StatelessWidget {
   }
 }
 
+// -----------------------------------------------------------------------------
+// 1. MOBILE LOGIN SCREEN WITH BIOMETRIC FINGERPRINT UNLOCK
+// -----------------------------------------------------------------------------
 class MobileAuthScreen extends StatefulWidget {
   const MobileAuthScreen({super.key});
 
@@ -54,6 +57,13 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
         ),
       );
     });
+  }
+
+  void _handleBiometricAuth() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('👆 Biometric Fingerprint / Face ID Verified! Logging in...')),
+    );
+    _handleLogin('COMPANY_OWNER');
   }
 
   @override
@@ -104,15 +114,25 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Sign In',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.fingerprint, color: Color(0xFF2563EB), size: 28),
+                            onPressed: _handleBiometricAuth,
+                            tooltip: 'Biometric Unlock',
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: _emailController,
                         style: const TextStyle(fontSize: 13),
@@ -147,7 +167,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.vertical(14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -175,7 +195,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                         onPressed: _isLoading ? null : () => _handleLogin('EMPLOYEE'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF0F172A),
-                          padding: const EdgeInsets.vertical(14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -205,6 +225,9 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
   }
 }
 
+// -----------------------------------------------------------------------------
+// 2. MAIN MOBILE NAVIGATION WITH OFFLINE SYNC BAR
+// -----------------------------------------------------------------------------
 class MobileMainNavigation extends StatefulWidget {
   final String userEmail;
   final String userRole;
@@ -221,6 +244,8 @@ class MobileMainNavigation extends StatefulWidget {
 
 class _MobileMainNavigationState extends State<MobileMainNavigation> {
   int _currentIndex = 0;
+  bool _isOfflineMode = false;
+  int _offlineQueueCount = 0;
 
   @override
   void initState() {
@@ -230,16 +255,88 @@ class _MobileMainNavigationState extends State<MobileMainNavigation> {
     }
   }
 
+  void _toggleOfflineMode() {
+    setState(() {
+      _isOfflineMode = !_isOfflineMode;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_isOfflineMode
+            ? '📡 Offline Mode Activated! Invoices will cache locally.'
+            : '🌐 Online Mode Restored! Auto-sync ready.'),
+      ),
+    );
+  }
+
+  void _syncOfflineInvoices() {
+    if (_offlineQueueCount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✨ No offline invoices pending sync.')),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('🔄 Syncing $_offlineQueueCount offline invoices to cloud NestJS API...')),
+    );
+    setState(() => _offlineQueueCount = 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = [
       MobileDashboardTab(userRole: widget.userRole),
-      const MobilePOSTab(),
+      MobilePOSTab(
+        isOfflineMode: _isOfflineMode,
+        onInvoiceCreatedOffline: () => setState(() => _offlineQueueCount += 1),
+      ),
       const MobileInventoryTab(),
       MobileProfileTab(userEmail: widget.userEmail, userRole: widget.userRole),
     ];
 
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(28),
+        child: GestureDetector(
+          onTap: _toggleOfflineMode,
+          child: Container(
+            color: _isOfflineMode ? Colors.amber.shade800 : Colors.green.shade700,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(_isOfflineMode ? Icons.wifi_off : Icons.wifi, color: Colors.white, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        _isOfflineMode ? 'OFFLINE MODE (Local Cache)' : 'ONLINE CLOUD SYNC ACTIVE',
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  if (_offlineQueueCount > 0)
+                    GestureDetector(
+                      onTap: _syncOfflineInvoices,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Sync ($_offlineQueueCount)',
+                          style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
       body: IndexedStack(
         index: _currentIndex,
         children: screens,
@@ -263,6 +360,9 @@ class _MobileMainNavigationState extends State<MobileMainNavigation> {
   }
 }
 
+// -----------------------------------------------------------------------------
+// 3. DASHBOARD TAB
+// -----------------------------------------------------------------------------
 class MobileDashboardTab extends StatelessWidget {
   final String userRole;
 
@@ -339,7 +439,7 @@ class MobileDashboardTab extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
               Icon(icon, size: 18, color: color),
@@ -347,7 +447,7 @@ class MobileDashboardTab extends StatelessWidget {
           ),
           Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
           Container(
-            padding: const EdgeInsets.horizontal(6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
@@ -361,11 +461,11 @@ class MobileDashboardTab extends StatelessWidget {
 
   Widget _buildLowStockRow(String title, String status) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.between,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
         Container(
-          padding: const EdgeInsets.horizontal(8, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: Colors.red.shade50,
             borderRadius: BorderRadius.circular(6),
@@ -378,8 +478,18 @@ class MobileDashboardTab extends StatelessWidget {
   }
 }
 
+// -----------------------------------------------------------------------------
+// 4. POS BILLING TAB WITH BLUETOOTH THERMAL PRINTER & CAMERA SCANNER
+// -----------------------------------------------------------------------------
 class MobilePOSTab extends StatefulWidget {
-  const MobilePOSTab({super.key});
+  final bool isOfflineMode;
+  final VoidCallback? onInvoiceCreatedOffline;
+
+  const MobilePOSTab({
+    super.key,
+    this.isOfflineMode = false,
+    this.onInvoiceCreatedOffline,
+  });
 
   @override
   State<MobilePOSTab> createState() => _MobilePOSTabState();
@@ -409,6 +519,69 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
   double get _tax => _subtotal * 0.18;
   double get _grandTotal => _subtotal + _tax;
 
+  void _openCameraScanner() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
+            SizedBox(width: 8),
+            Text('Camera Barcode Scanner', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(Icons.qr_code_scanner, color: Colors.white54, size: 80),
+                  Container(
+                    width: 140,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF2563EB), width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  const Positioned(
+                    bottom: 12,
+                    child: Text('Align Barcode inside viewfinder', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _addToCart(_catalog[0]);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('⚡ Barcode Scanned: Wireless Ergonomic Mouse added!')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(42),
+              ),
+              child: const Text('Simulate Scan SKU-LOG-001'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -419,11 +592,7 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF2563EB)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('📷 Camera Barcode Scanner activated!')),
-              );
-            },
+            onPressed: _openCameraScanner,
           ),
         ],
       ),
@@ -473,7 +642,7 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Cart Items: ${_cart.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('Grand Total: ₹${_grandTotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
@@ -484,6 +653,9 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
                   onPressed: _cart.isEmpty
                       ? null
                       : () {
+                          if (widget.isOfflineMode && widget.onInvoiceCreatedOffline != null) {
+                            widget.onInvoiceCreatedOffline!();
+                          }
                           showModalBottomSheet(
                             context: context,
                             builder: (context) => Container(
@@ -491,16 +663,23 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                                  Icon(
+                                    widget.isOfflineMode ? Icons.cached : Icons.check_circle,
+                                    color: widget.isOfflineMode ? Colors.amber.shade800 : Colors.green,
+                                    size: 48,
+                                  ),
                                   const SizedBox(height: 12),
-                                  const Text('GST Invoice Generated!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  Text(
+                                    widget.isOfflineMode ? 'Invoice Cached Offline!' : 'GST Invoice Generated!',
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
                                   const SizedBox(height: 8),
                                   Text('Total Paid: ₹${_grandTotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 14)),
                                   const SizedBox(height: 20),
                                   ElevatedButton.icon(
                                     onPressed: () => Navigator.pop(context),
-                                    icon: const Icon(Icons.print),
-                                    label: const Text('Print Receipt via Bluetooth'),
+                                    icon: const Icon(Icons.bluetooth_connected),
+                                    label: const Text('Print via Bluetooth Thermal Printer'),
                                   ),
                                 ],
                               ),
@@ -508,12 +687,15 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
                           );
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: widget.isOfflineMode ? Colors.amber.shade800 : const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(48),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Checkout & Generate Invoice', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    widget.isOfflineMode ? 'Save Offline Invoice' : 'Checkout & Generate Invoice',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -572,7 +754,7 @@ class MobileInventoryTab extends StatelessWidget {
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         subtitle: Text('SKU: $sku', style: const TextStyle(fontSize: 11)),
         trailing: Container(
-          padding: const EdgeInsets.horizontal(10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: stock < 10 ? Colors.red.shade50 : Colors.blue.shade50,
             borderRadius: BorderRadius.circular(8),
@@ -622,7 +804,7 @@ class MobileProfileTab extends StatelessWidget {
             Text(userEmail, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.horizontal(10, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),

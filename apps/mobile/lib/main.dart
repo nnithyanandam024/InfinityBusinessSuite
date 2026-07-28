@@ -77,39 +77,76 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: const TextSpan(
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                // Top Brand Logo Banner with Soft Blue Background
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2563EB).withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
                     children: [
-                      TextSpan(text: 'Infinity '),
-                      TextSpan(
-                        text: 'Business Suite',
-                        style: TextStyle(
-                          color: Color(0xFF2563EB),
-                          fontWeight: FontWeight.normal,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
+                        child: const Icon(Icons.all_inclusive, color: Colors.white, size: 36),
+                      ),
+                      const SizedBox(height: 12),
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          children: [
+                            TextSpan(text: 'Infinity '),
+                            TextSpan(
+                              text: 'Business Suite',
+                              style: TextStyle(fontWeight: FontWeight.w300),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Cloud ERP & Point of Sale',
+                        style: TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Cloud ERP & POS Mobile App',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
+
+                // Card Form Container
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +169,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       TextField(
                         controller: _emailController,
                         style: const TextStyle(fontSize: 13),
@@ -142,7 +179,8 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                           ),
                         ),
                       ),
@@ -157,7 +195,8 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                           ),
                         ),
                       ),
@@ -169,8 +208,9 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
+                          elevation: 2,
                         ),
                         child: _isLoading
                             ? const SizedBox(
@@ -190,7 +230,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                                 ],
                               ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       OutlinedButton(
                         onPressed: _isLoading ? null : () => _handleLogin('EMPLOYEE'),
                         style: OutlinedButton.styleFrom(
@@ -198,7 +238,7 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: const BorderSide(color: Color(0xFFCBD5E1)),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         child: const Row(
@@ -295,12 +335,12 @@ class _MobileMainNavigationState extends State<MobileMainNavigation> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(28),
+        preferredSize: const Size.fromHeight(30),
         child: GestureDetector(
           onTap: _toggleOfflineMode,
           child: Container(
             color: _isOfflineMode ? Colors.amber.shade800 : Colors.green.shade700,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
             child: SafeArea(
               bottom: false,
               child: Row(
@@ -320,10 +360,10 @@ class _MobileMainNavigationState extends State<MobileMainNavigation> {
                     GestureDetector(
                       onTap: _syncOfflineInvoices,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           'Sync ($_offlineQueueCount)',
@@ -372,13 +412,41 @@ class MobileDashboardTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('Dashboard Overview', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: Colors.white,
         elevation: 0.5,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Banner Welcome Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.between,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Infinity Business Suite', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 4),
+                    Text('Live Sales Dashboard', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                Icon(Icons.insights, color: Colors.white, size: 32),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
@@ -439,7 +507,7 @@ class MobileDashboardTab extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.between,
             children: [
               Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
               Icon(icon, size: 18, color: color),
@@ -461,7 +529,7 @@ class MobileDashboardTab extends StatelessWidget {
 
   Widget _buildLowStockRow(String title, String status) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.between,
       children: [
         Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
         Container(
@@ -608,7 +676,7 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
                   elevation: 0,
                   color: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     side: const BorderSide(color: Color(0xFFE2E8F0)),
                   ),
                   margin: const EdgeInsets.only(bottom: 8),
@@ -635,14 +703,14 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12)],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.between,
                   children: [
                     Text('Cart Items: ${_cart.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('Grand Total: ₹${_grandTotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
@@ -690,7 +758,7 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
                     backgroundColor: widget.isOfflineMode ? Colors.amber.shade800 : const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
                     widget.isOfflineMode ? 'Save Offline Invoice' : 'Checkout & Generate Invoice',
@@ -727,7 +795,7 @@ class MobileInventoryTab extends StatelessWidget {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
             ),
@@ -746,7 +814,7 @@ class MobileInventoryTab extends StatelessWidget {
       elevation: 0,
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       margin: const EdgeInsets.only(bottom: 8),
@@ -804,7 +872,7 @@ class MobileProfileTab extends StatelessWidget {
             Text(userEmail, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -827,7 +895,7 @@ class MobileProfileTab extends StatelessWidget {
                 foregroundColor: Colors.redAccent,
                 minimumSize: const Size.fromHeight(48),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               child: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
             ),

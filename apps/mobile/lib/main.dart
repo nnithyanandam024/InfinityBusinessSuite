@@ -77,7 +77,6 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Brand Logo Banner with Soft Blue Background
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                   decoration: BoxDecoration(
@@ -133,7 +132,6 @@ class _MobileAuthScreenState extends State<MobileAuthScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // Card Form Container
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
@@ -419,7 +417,6 @@ class MobileDashboardTab extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Banner Welcome Card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -431,7 +428,7 @@ class MobileDashboardTab extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Row(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,7 +504,7 @@ class MobileDashboardTab extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.between,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
               Icon(icon, size: 18, color: color),
@@ -529,7 +526,7 @@ class MobileDashboardTab extends StatelessWidget {
 
   Widget _buildLowStockRow(String title, String status) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.between,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
         Container(
@@ -710,7 +707,7 @@ class _MobilePOSTabState extends State<MobilePOSTab> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Cart Items: ${_cart.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('Grand Total: ₹${_grandTotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
